@@ -1,6 +1,10 @@
 import requests
 import json
 import pandas as pd
+import dash
+import dash_table
+import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 startDate = '2021-10-18'
 endDate = '2021-10-25'
@@ -25,5 +29,33 @@ for date in r_dict['dates']:
         else:
             game_counts[away] = 1
 
-df = pd.DataFrame(game_counts.items(), columns=['Team', 'Number of Games'])
-print(df.sort_values(by=['Number of Games'], ascending=False))
+df = pd.DataFrame(game_counts.items(), columns=['Team', 'Nombre de matchs'])
+sorted_df = df.sort_values(by=['Nombre de matchs'], ascending=False)
+
+external_stylesheets = [dbc.themes.BOOTSTRAP]
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+app.layout = html.Div(
+                className="container",
+                children=[
+                    html.H1(f"Matchs du {startDate} au {endDate}"),
+                    dash_table.DataTable(
+                        id='table',
+                        columns=[{"name": i, "id": i} for i in df.columns],
+                        data=sorted_df.to_dict('records'),
+                        sort_action='native',
+                        filter_action="native",
+                        style_data_conditional=[
+                            {
+                                'if': {
+                                    'filter_query': '{Nombre de matchs} > 3',
+                                    'column_id': ['Team', 'Nombre de matchs']
+                                },
+                                'backgroundColor': 'green',
+                                'color': 'white'
+                            }]
+                    )]
+            )
+
+if __name__ == '__main__':
+    app.run_server()
