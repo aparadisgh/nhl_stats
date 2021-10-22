@@ -1,28 +1,28 @@
-import requests
+# -*- coding: utf-8 -*-
+"""SweetPicks WebApp
+
+This module ...
+"""
+import datetime
 import json
+
+import requests
 import pandas as pd
+
 import dash
 from dash import dash_table
 from dash import html
 import dash_bootstrap_components as dbc
-import datetime
+
+from utils import league_dates
 import config
 
-today = datetime.datetime.today()
-wd = today.weekday()
-days_to_monday = 7-wd
-
-if wd == 0:
-    startDate = today.strftime('%Y-%m-%d')
-else:
-    startDate = today + datetime.timedelta(days=days_to_monday)
-
+startDate = league_dates.get_next_monday()
 endDate = startDate + datetime.timedelta(days=6)
-
 startDate_str = startDate.strftime('%Y-%m-%d')
 endDate_str = endDate.strftime('%Y-%m-%d')
 
-r = requests.get(f'https://statsapi.web.nhl.com/api/v1/schedule?startDate={startDate_str}&endDate={endDate_str}')
+r = requests.get(f'https://statsapi.web.nhl.com/api/v1/schedule?startDate={startDate_str}&endDate={endDate_str}') # pylint: disable=line-too-long
 
 r_dict = json.loads(r.text)
 
@@ -66,8 +66,7 @@ app.layout = html.Div(
                             },
                             {
                                 'if': {
-                                    'filter_query': '{{Nombre de matchs}} = {}'.format(df['Nombre de matchs'].max()),
-                                    'column_id': ['Team', 'Nombre de matchs']
+                                    'filter_query': f"{{Nombre de matchs}} = {df['Nombre de matchs'].max()}",
                                 },
                                 'backgroundColor': 'rgb(102, 255, 102)',
                                 'color': 'rgb(64, 64, 64)',
@@ -77,4 +76,4 @@ app.layout = html.Div(
             )
 
 if __name__ == '__main__':
-    app.run_server(host=config.server["host"],port=config.server["port"],debug=config.server["debug"])
+    app.run_server(host=config.HOST,port=config.PORT,debug=config.DEBUG)
