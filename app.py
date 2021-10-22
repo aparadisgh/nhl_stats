@@ -10,7 +10,6 @@ import config
 
 today = datetime.datetime.today()
 wd = today.weekday()
-print(wd)
 days_to_monday = 7-wd
 
 if wd == 0:
@@ -50,10 +49,10 @@ external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div(
-                className="container",
+                className="container-sm text-muted p-4",
                 children=[
                     html.H1("SweetPicks.com"),
-                    html.H6(f"Du {startDate_str} au {endDate_str}"),
+                    html.P(f"Du {startDate_str} au {endDate_str}"),
                     dash_table.DataTable(
                         id='table',
                         columns=[{"name": i, "id": i} for i in df.columns],
@@ -62,13 +61,17 @@ app.layout = html.Div(
                         filter_action="native",
                         style_data_conditional=[
                             {
+                                'if': {'column_id': 'Nombre de matchs'},
+                                'textAlign': 'left'
+                            },
+                            {
                                 'if': {
-                                    #'filter_query': '{Nombre de matchs} > 3',
                                     'filter_query': '{{Nombre de matchs}} = {}'.format(df['Nombre de matchs'].max()),
                                     'column_id': ['Team', 'Nombre de matchs']
                                 },
                                 'backgroundColor': 'rgb(102, 255, 102)',
-                                'color': 'rgb(64, 64, 64)'
+                                'color': 'rgb(64, 64, 64)',
+                                'fontWeight': 'bold'
                             }]
                     )]
             )
