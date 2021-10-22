@@ -2,14 +2,28 @@ import requests
 import json
 import pandas as pd
 import dash
-import dash_table
-import dash_html_components as html
+from dash import dash_table
+from dash import html
 import dash_bootstrap_components as dbc
+import datetime
+import config
 
-startDate = '2021-10-18'
-endDate = '2021-10-25'
+today = datetime.datetime.today()
+wd = today.weekday()
+print(wd)
+days_to_monday = 7-wd
 
-r = requests.get(f'https://statsapi.web.nhl.com/api/v1/schedule?startDate={startDate}&endDate={endDate}')
+if wd == 0:
+    startDate = today.strftime('%Y-%m-%d')
+else:
+    startDate = today + datetime.timedelta(days=days_to_monday)
+
+endDate = startDate + datetime.timedelta(days=6)
+
+startDate_str = startDate.strftime('%Y-%m-%d')
+endDate_str = endDate.strftime('%Y-%m-%d')
+
+r = requests.get(f'https://statsapi.web.nhl.com/api/v1/schedule?startDate={startDate_str}&endDate={endDate_str}')
 
 r_dict = json.loads(r.text)
 
@@ -38,7 +52,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
                 className="container",
                 children=[
-                    html.H1(f"Matchs du {startDate} au {endDate}"),
+                    html.H1("SweetPicks.com"),
+                    html.H6(f"Du {startDate_str} au {endDate_str}"),
                     dash_table.DataTable(
                         id='table',
                         columns=[{"name": i, "id": i} for i in df.columns],
@@ -48,14 +63,15 @@ app.layout = html.Div(
                         style_data_conditional=[
                             {
                                 'if': {
-                                    'filter_query': '{Nombre de matchs} > 3',
+                                    #'filter_query': '{Nombre de matchs} > 3',
+                                    'filter_query': '{{Nombre de matchs}} = {}'.format(df['Nombre de matchs'].max()),
                                     'column_id': ['Team', 'Nombre de matchs']
                                 },
-                                'backgroundColor': 'green',
-                                'color': 'white'
+                                'backgroundColor': 'rgb(102, 255, 102)',
+                                'color': 'rgb(64, 64, 64)'
                             }]
                     )]
             )
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(host=config.server["host"],port=config.server["port"],debug=config.server["debug"])
