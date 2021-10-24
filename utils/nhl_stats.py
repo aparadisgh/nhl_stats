@@ -13,7 +13,6 @@ import pandas as pd
 def get_records():
     r = requests.get("https://statsapi.web.nhl.com/api/v1/standings")
     r_dict = json.loads(r.text)
-    #print(r)
 
     df = pd.DataFrame(columns=['Team'])
     for record in r_dict["records"]:
@@ -23,7 +22,7 @@ def get_records():
                 'Team': team['team']['name'],
                 'W': team['leagueRecord']['wins'],
                 'L': team['leagueRecord']['losses'],
-                'OT': team['leagueRecord']['ot']},
+                'OTL': team['leagueRecord']['ot']},
                 ignore_index=True)
 
     df = df.set_index('ID')
@@ -37,8 +36,8 @@ def get_next_week(startDate_str,endDate_str):
     game_counts = {}
     for date in r_dict['dates']:
         for game in date['games']:
-            home = game['teams']['home']['team']['name']
-            away = game['teams']['away']['team']['name']
+            home = game['teams']['home']['team']['id']
+            away = game['teams']['away']['team']['id']
 
             if home in game_counts:
                 game_counts[home] = game_counts[home] + 1
@@ -50,5 +49,6 @@ def get_next_week(startDate_str,endDate_str):
             else:
                 game_counts[away] = 1
 
-    df = pd.DataFrame(game_counts.items(), columns=['Team', 'Nombre de matchs'])
+    df = pd.DataFrame(game_counts.items(), columns=['ID', 'Nombre de matchs'])
+    df = df.set_index('ID')
     return df

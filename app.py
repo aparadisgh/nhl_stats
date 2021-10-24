@@ -23,7 +23,11 @@ endDate = startDate + datetime.timedelta(days=6)
 startDate_str = startDate.strftime('%Y-%m-%d')
 endDate_str = endDate.strftime('%Y-%m-%d')
 
-df = nhl_stats.get_next_week(startDate_str, endDate_str)
+df1 = nhl_stats.get_records()
+df2 = nhl_stats.get_next_week(startDate_str, endDate_str)
+df = df1.merge(df2, left_index=True, right_index=True)
+df['GP'] = df['W'] + df['L'] + df['OTL']
+df = df[['Team', 'Nombre de matchs','GP','W','L','OTL']]
 sorted_df = df.sort_values(by=['Nombre de matchs'], ascending=False)
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
@@ -43,15 +47,14 @@ app.layout = html.Div(
                         style_data_conditional=[
                             {
                                 'if': {'column_id': 'Nombre de matchs'},
-                                'textAlign': 'left'
+                                'fontWeight': 'bold'
                             },
                             {
                                 'if': {
                                     'filter_query': f"{{Nombre de matchs}} = {df['Nombre de matchs'].max()}",
                                 },
-                                'backgroundColor': 'rgb(102, 255, 102)',
+                                'backgroundColor': 'rgb(119, 255, 125)',
                                 'color': 'rgb(64, 64, 64)',
-                                'fontWeight': 'bold'
                             }]
                     )]
             )
