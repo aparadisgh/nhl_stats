@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """SweetPicks WebApp
 
-This module ...
+This module creates a simple web server using Dash to display relevent NHL stats. The web app layout is define below.
 """
 import datetime
 import json
@@ -14,35 +14,16 @@ from dash import dash_table
 from dash import html
 import dash_bootstrap_components as dbc
 
-from utils import league_dates
+from utils import the_league
+from utils import nhl_stats
 import config
 
-startDate = league_dates.get_next_monday()
+startDate = the_league.get_next_monday()
 endDate = startDate + datetime.timedelta(days=6)
 startDate_str = startDate.strftime('%Y-%m-%d')
 endDate_str = endDate.strftime('%Y-%m-%d')
 
-r = requests.get(f'https://statsapi.web.nhl.com/api/v1/schedule?startDate={startDate_str}&endDate={endDate_str}') # pylint: disable=line-too-long
-
-r_dict = json.loads(r.text)
-
-game_counts = {}
-for date in r_dict['dates']:
-    for game in date['games']:
-        home = game['teams']['home']['team']['name']
-        away = game['teams']['away']['team']['name']
-
-        if home in game_counts:
-            game_counts[home] = game_counts[home] + 1
-        else:
-            game_counts[home] = 1
-
-        if away in game_counts:
-            game_counts[away] = game_counts[away] + 1
-        else:
-            game_counts[away] = 1
-
-df = pd.DataFrame(game_counts.items(), columns=['Team', 'Nombre de matchs'])
+df = nhl_stats.get_next_week(startDate_str, endDate_str)
 sorted_df = df.sort_values(by=['Nombre de matchs'], ascending=False)
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
