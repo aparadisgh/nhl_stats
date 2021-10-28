@@ -42,7 +42,7 @@ def update_output_div(input_value):
     This callback function generates a datatable for next week. It is meant to be executed on page load only.
     """
     startDate = the_league.get_next_monday()
-    endDate = startDate + datetime.timedelta(days=120)
+    endDate = startDate + datetime.timedelta(days=6)
     startDate_str = startDate.strftime('%Y-%m-%d')
     endDate_str = endDate.strftime('%Y-%m-%d')
 
