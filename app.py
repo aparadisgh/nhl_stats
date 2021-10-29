@@ -5,15 +5,17 @@ This module creates a simple web server using Dash to display relevent NHL stats
 The web app layout is define below.
 """
 
-APP_VERSION = "v1.2.0"
+APP_VERSION = "v1.2.1"
 
 import datetime
 
 import dash
 from dash import dash_table
+from dash_table import FormatTemplate
 from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output
+from dash_table.Format import Format, Scheme, Trim
 import dash_bootstrap_components as dbc
 
 from utils import the_league
@@ -87,8 +89,12 @@ def update_output_div(start_date, end_date): # pylint: disable=unused-argument
         df2 = nhl_stats.get_next_week(start_date, end_date)
         df = df1.merge(df2, left_index=True, right_index=True)
         df['GP'] = df['W'] + df['L'] + df['OTL']
-        df = df[['Team', 'Nombre de matchs','GP','W','L','OTL']]
+        df['W (%)'] = df['W']/df['GP'] * 100
+        df['W (%)'] = df['W (%)'].round(1)
+        df = df[['Team', 'Nombre de matchs','W (%)','GP','W','L','OTL']]
         sorted_df = df.sort_values(by=['Nombre de matchs'], ascending=False)
+
+        percentage = FormatTemplate.percentage(2)
 
         children = [
             #html.P(f'Du {start_date_str} au {end_date_str}'),
