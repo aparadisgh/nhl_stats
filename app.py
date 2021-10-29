@@ -5,7 +5,7 @@ This module creates a simple web server using Dash to display relevent NHL stats
 The web app layout is define below.
 """
 
-APP_VERSION = "v1.2.0 (Beta)"
+APP_VERSION = "v1.2.0"
 
 import datetime
 
@@ -43,7 +43,7 @@ app.layout = html.Div(
                     html.Div(
                         className='text-center text-muted p-4',
                         children=[
-                                html.P(f'Application - {APP_VERSION}')
+                                html.P(f'{APP_VERSION}')
                     ])
                 ]
                 
