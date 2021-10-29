@@ -11,7 +11,6 @@ import datetime
 
 import dash
 from dash import dash_table
-from dash_table import FormatTemplate
 from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output
