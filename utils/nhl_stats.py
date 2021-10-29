@@ -49,6 +49,6 @@ def get_next_week(startDate_str,endDate_str):
             else:
                 game_counts[away] = 1
 
-    df = pd.DataFrame(game_counts.items(), columns=['ID', 'Nombre de matchs'])
+    df = pd.DataFrame(game_counts.items(), columns=['ID', 'Upcoming Games'])
     df = df.set_index('ID')
     return df
