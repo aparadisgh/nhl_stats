@@ -14,6 +14,8 @@ import dash_bootstrap_components as dbc
 from app import app
 from apps import app1, app2
 
+import config
+
 app.layout = html.Div(
     className='container-xl text-muted p-4 bg-white',
     children=[
@@ -49,4 +51,4 @@ def display_page(pathname):
         return '404'
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(host=config.HOST,port=config.PORT,debug=config.DEBUG)
