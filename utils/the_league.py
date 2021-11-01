@@ -11,7 +11,7 @@ def get_next_monday():
     days_to_monday = 7-day_of_the_week
 
     if day_of_the_week == 0:
-        start_date = today.strftime('%Y-%m-%d')
+        start_date = today
     else:
         start_date = today + datetime.timedelta(days=days_to_monday)
 
