@@ -102,9 +102,18 @@ def update_output_div(start_date, end_date):
                             'filter_query': 
                                 f"{{Upcoming Games}} = {df['Upcoming Games'].max()}",
                         },
-                        'backgroundColor': 'rgb(119, 255, 125)',
+                        'backgroundColor': 'rgb(204, 255, 204)',
                         'color': 'rgb(64, 64, 64)',
-                }]
+                    },
+                    {
+                        'if': {
+                            'filter_query': 
+                                f"{{Upcoming Games}} = {df['Upcoming Games'].min()}",
+                        },
+                        'backgroundColor': 'rgb(255, 204, 204)',
+                        'color': 'rgb(64, 64, 64)',
+                    },
+                ]
             )
         ]
     else:

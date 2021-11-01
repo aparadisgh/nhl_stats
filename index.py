@@ -4,7 +4,7 @@ This module creates and runs a simple web server using Dash to display relevent 
 The web app URL routing is define below.
 """
 
-APP_VERSION = 'v1.3.0'
+APP_VERSION = 'v1.3.1'
 
 import dash_core_components as dcc
 import dash_html_components as html
