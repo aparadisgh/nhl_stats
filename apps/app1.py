@@ -48,7 +48,6 @@ def update_output_div(input_value): # pylint: disable=unused-argument
     It is meant to be executed on page load only.
     """
     start_date = the_league.get_next_monday()
-    print(start_date)
     end_date = start_date + datetime.timedelta(days=6)
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -101,6 +100,7 @@ def update_output_div(start_date, end_date):
                         'if': {
                             'filter_query': 
                                 f"{{Upcoming Games}} = {df['Upcoming Games'].max()}",
+                            'column_id': 'Upcoming Games'
                         },
                         'backgroundColor': 'rgb(204, 255, 204)',
                         'color': 'rgb(64, 64, 64)',
@@ -109,8 +109,9 @@ def update_output_div(start_date, end_date):
                         'if': {
                             'filter_query': 
                                 f"{{Upcoming Games}} = {df['Upcoming Games'].min()}",
+                                'column_id': 'Upcoming Games'
                         },
-                        'backgroundColor': 'rgb(255, 204, 204)',
+                        'backgroundColor': 'rgb(255, 229, 204)',
                         'color': 'rgb(64, 64, 64)',
                     },
                 ]

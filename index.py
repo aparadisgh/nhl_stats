@@ -15,7 +15,7 @@ from app import app
 from apps import app1, app2
 
 app.layout = html.Div(
-    className='container-xl text-muted p-4',
+    className='container-xl text-muted p-4 bg-white',
     children=[
         dcc.Location(id='url', refresh=False),
         html.H3('The League | Advanced Analytics'),
@@ -24,7 +24,7 @@ app.layout = html.Div(
                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
             ],
-            class_name= "bg-secondary rounded-1 mt-4"
+            class_name= "bg-dark rounded-1 mt-4"
         ),
         html.Div(id='page-content'), # Container where apps are displayed
         html.Div(
