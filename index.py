@@ -21,17 +21,19 @@ app.layout = html.Div(
         html.H3('The League | Advanced Analytics'),
         dbc.Nav(
             [
-                dbc.NavItem(dbc.NavLink("Team Stats", active=True, href='/teams')),
+                dbc.NavItem(dbc.NavLink("Team Stats", href='/teams')),
                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players')),
             ]
         ),
-        html.Div(id='page-content'),
+        html.Div(id='page-content'), # Container where apps are displayed
         html.Div(
             className='text-center text-muted p-4',
             children=[
                 html.P(f'{APP_VERSION}')
-        ])
-])
+            ]
+        )
+    ]
+)
 
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
