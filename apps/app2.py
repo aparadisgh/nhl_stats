@@ -10,6 +10,7 @@ from app import app #required for app callbacks
 
 layout = html.Div(
     id='app-container',
+    className='my-4',
     children=[
         dbc.Alert("!!! WAPTOO-CRACK !!!", color="danger")
     ]

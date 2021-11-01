@@ -20,7 +20,7 @@ layout = html.Div(
     id='app-container',
     className='my-4',
     children=[
-        html.H5('Season Team Stats'),
+        html.H5('Team Stats'),
         html.P('Select time span to update "Upcoming games"'),
         html.Div(
             id='date-picker-div',

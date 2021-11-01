@@ -21,9 +21,10 @@ app.layout = html.Div(
         html.H3('The League | Advanced Analytics'),
         dbc.Nav(
             [
-                dbc.NavItem(dbc.NavLink("Team Stats", href='/teams')),
-                dbc.NavItem(dbc.NavLink("Player Stats", href='/players')),
-            ]
+                dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
+                dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
+            ],
+            class_name= "bg-secondary rounded-1 mt-4"
         ),
         html.Div(id='page-content'), # Container where apps are displayed
         html.Div(
