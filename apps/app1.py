@@ -82,8 +82,8 @@ def update_output_div(start_date, end_date):
         df['GP'] = df['W'] + df['L'] + df['OTL']
         df['W (%)'] = df['W']/df['GP'] * 100
         df['W (%)'] = df['W (%)'].round(1)
-        df = df[['Team', 'Upcoming Games','W (%)','GP','W','L','OTL']]
-        sorted_df = df.sort_values(by=['Upcoming Games'], ascending=False)
+        df = df[['Team', 'Count','W (%)','GP','W','L','OTL']]
+        sorted_df = df.sort_values(by=['Count'], ascending=False)
 
         children = [
             dash_table.DataTable(
@@ -93,14 +93,14 @@ def update_output_div(start_date, end_date):
                 sort_action='native',
                 style_data_conditional=[
                     {
-                        'if': {'column_id': 'Upcoming Games'},
+                        'if': {'column_id': 'Count'},
                         'fontWeight': 'bold'
                     },
                     {
                         'if': {
                             'filter_query': 
-                                f"{{Upcoming Games}} = {df['Upcoming Games'].max()}",
-                            'column_id': 'Upcoming Games'
+                                f"{{Count}} = {df['Count'].max()}",
+                            'column_id': 'Count'
                         },
                         'backgroundColor': 'rgb(204, 255, 204)',
                         'color': 'rgb(64, 64, 64)',
@@ -108,8 +108,8 @@ def update_output_div(start_date, end_date):
                     {
                         'if': {
                             'filter_query': 
-                                f"{{Upcoming Games}} = {df['Upcoming Games'].min()}",
-                                'column_id': 'Upcoming Games'
+                                f"{{Count}} = {df['Count'].min()}",
+                                'column_id': 'Count'
                         },
                         'backgroundColor': 'rgb(255, 229, 204)',
                         'color': 'rgb(64, 64, 64)',
