@@ -6,13 +6,16 @@ The web app URL routing is define below.
 
 APP_VERSION = 'v1.3.1'
 
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
-from apps import app1, app2
+
+from apps import app1
+from apps import app2
+from apps import expected_goalies#, personal_dashboard
 
 import config
 
@@ -25,6 +28,7 @@ app.layout = html.Div(
             [
                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
+                #dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
             ],
             class_name= "bg-dark rounded-1 mt-4"
         ),
@@ -47,6 +51,10 @@ def display_page(pathname):
         return app1.layout
     elif pathname == '/players':
         return app2.layout
+    elif pathname == '/goalies':
+        return expected_goalies.layout
+    #elif pathname == '/users/aparadis':
+        #return personal_dashboard.layout
     else:
         return '404'
 
