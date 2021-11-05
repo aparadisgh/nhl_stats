@@ -2,9 +2,10 @@
 """Function libray to retreive important Fantasy Hockey dates
 
 This module ...
-"""
 
-#import datetime
+To Do:
+    - Look into using orjson instead of json
+"""
 import json
 
 import requests
@@ -33,7 +34,6 @@ def get_next_week(startDate_str,endDate_str):
 
     r_dict = json.loads(r.text)
 
-    game_counts = {}
     games_per_team = {}
     for date in r_dict['dates']:
         for game in date['games']:
@@ -41,14 +41,12 @@ def get_next_week(startDate_str,endDate_str):
             away = game['teams']['away']['team']['id']
 
             if home in games_per_team:
-                #game_counts[home] = game_counts[home] + 1
                 games_per_team[home] = games_per_team[home]+[{
                     'date': date['date'],
                     'against': away,
                     'location': 'home'
                 }]
             else:
-                #game_counts[home] = 1
                 games_per_team[home] = [{
                     'date': date['date'],
                     'against': away,
@@ -56,25 +54,20 @@ def get_next_week(startDate_str,endDate_str):
                 }]
 
             if away in games_per_team:
-                #game_counts[away] = game_counts[away] + 1
                 games_per_team[away] = games_per_team[away]+[{
                     'date': date['date'],
                     'against': home,
                     'location': 'away'
                 }]
             else:
-                #game_counts[away] = 1
                 games_per_team[away] = [{
                     'date': date['date'],
                     'against': home,
                     'location': 'away'
                 }]
 
-    #df = pd.DataFrame(game_counts.items(), columns=['ID', 'Upcoming Games'])
     df_temp = pd.DataFrame(games_per_team.items(), columns=['ID', 'Upcoming Games'])
-    #df = df.set_index('ID')
 
     df_temp = df_temp.set_index('ID')
     df_temp['Count'] = df_temp['Upcoming Games'].str.len()
-    #print(df_temp)
     return df_temp

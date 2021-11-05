@@ -1,6 +1,11 @@
 """Team Ranking Page Layout
 
 This module defines the pages content for the 'apps/teams' route.
+
+To Do:
+    - When a team is selected of clicked on, display weelky matchup details
+      (Cannot be a tooltip, see https://github.com/plotly/dash-table/issues/872)
+    - Add a Winning Index for each team based on upcoming matchups
 """
 
 import datetime
@@ -13,15 +18,15 @@ import dash_bootstrap_components as dbc
 
 from app import app
 
-from utils import the_league
-from utils import nhl_stats
+from utils import league_param
+from utils import nhl_api
 
 layout = html.Div(
     id='app-container',
     className='my-4',
     children=[
         html.H5('Team Stats'),
-        html.P('Select time span to update "Upcoming games"'),
+        html.P('Select time span to update upcoming games count'),
         html.Div(
             id='date-picker-div',
             className='p-0 my-4',
@@ -47,7 +52,7 @@ def update_output_div(input_value): # pylint: disable=unused-argument
     This callback sets the date picker for the following week (Monday to Sunday)
     It is meant to be executed on page load only.
     """
-    start_date = the_league.get_next_monday()
+    start_date = league_param.get_next_monday()
     end_date = start_date + datetime.timedelta(days=6)
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -76,8 +81,8 @@ def update_output_div(start_date, end_date):
     """
 
     if start_date and end_date:
-        df1 = nhl_stats.get_records()
-        df2 = nhl_stats.get_next_week(start_date, end_date)
+        df1 = nhl_api.get_records()
+        df2 = nhl_api.get_next_week(start_date, end_date)
         df = df1.merge(df2, left_index=True, right_index=True)
         df['GP'] = df['W'] + df['L'] + df['OTL']
         df['W (%)'] = df['W']/df['GP'] * 100
