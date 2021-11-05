@@ -28,7 +28,7 @@ app.layout = html.Div(
             [
                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
-                #dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
+                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
             ],
             class_name= "bg-dark rounded-1 mt-4"
         ),
