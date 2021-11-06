@@ -10,11 +10,14 @@ To Do:
 
 import datetime
 
+import pandas as pd
 from dash import dash_table
 from dash import html
 from dash import dcc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from pkg_resources import add_activation_listener
 
 from app import app
 
@@ -27,6 +30,24 @@ layout = html.Div(
     children=[
         html.H5('Team Stats'),
         html.P('Select time span to update upcoming games count'),
+        dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Matchups")),
+                dbc.ModalBody(
+                    html.Div(
+                        id='modal-content',
+                        children=[]
+                    )
+                ),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close", className="ms-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="modal",
+            is_open=False,
+        ),
         html.Div(
             id='date-picker-div',
             className='p-0 my-4',
@@ -69,6 +90,45 @@ def update_output_div(input_value): # pylint: disable=unused-argument
     return children
 
 @app.callback(
+    [Output("modal", "is_open"),
+    Output("modal-content", "children")],
+    [Input("close", "n_clicks"),
+    Input('table', 'active_cell')],
+    [State("modal", "is_open"),
+    State('my-date-picker-range','start_date'),
+    State('my-date-picker-range','end_date'),
+    State('table','data')],
+    prevent_initial_call=True
+)
+def toggle_modal(n1, active_cell, is_open, start_date, end_date, tbl):
+    """Display (pop-up) MatchUp Schedule
+
+    """
+    if not active_cell:
+        raise PreventUpdate
+
+    if start_date and end_date:
+        teams = pd.DataFrame(tbl) #Replace with a constant TEAM_INDEX_DF
+
+    selected_team = active_cell['row']
+    content = [
+        html.Div(
+            children=[
+                html.Span(game['date']),
+                html.Span(' - '),
+                html.Span(teams[teams['Index'] == game['against']]['Team']),
+                html.Span(" - W(%): "),
+                html.Span(teams[teams['Index'] == game['against']]['W (%)'])
+            ]
+        )
+        for game in tbl[selected_team]['Upcoming Games']
+    ]
+
+    if (active_cell['column_id'] == 'Count'):
+        return [not is_open, content] 
+    return [is_open, content]
+
+@app.callback(
     Output('data-div', 'children'),
     Input('my-date-picker-range','start_date'),
     Input('my-date-picker-range','end_date'), # One can probably be a state to avoid triggering callback twice
@@ -87,13 +147,16 @@ def update_output_div(start_date, end_date):
         df['GP'] = df['W'] + df['L'] + df['OTL']
         df['W (%)'] = df['W']/df['GP'] * 100
         df['W (%)'] = df['W (%)'].round(1)
-        df = df[['Team', 'Count','W (%)','GP','W','L','OTL']]
+        df['Index'] = df.index
+        df = df[['Index','Team', 'Count','W (%)','GP','W','L','OTL','Upcoming Games']]
         sorted_df = df.sort_values(by=['Count'], ascending=False)
+
+        hidden_columns = ['Index','Upcoming Games']
 
         children = [
             dash_table.DataTable(
                 id='table',
-                columns=[{'name': i, 'id': i} for i in df.columns],
+                columns=[{'name': i, 'id': i} for i in df.columns if i not in hidden_columns],
                 data=sorted_df.to_dict('records'),
                 sort_action='native',
                 style_data_conditional=[
@@ -122,6 +185,7 @@ def update_output_div(start_date, end_date):
                 ]
             )
         ]
+
     else:
         children = []
 
