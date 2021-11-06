@@ -110,18 +110,37 @@ def toggle_modal(n1, active_cell, is_open, start_date, end_date, tbl):
     if start_date and end_date:
         teams = pd.DataFrame(tbl) #Replace with a constant TEAM_INDEX_DF
 
+    #print(teams[teams['Index'] == game['against']]['W (%)'])
+
     selected_team = active_cell['row']
     content = [
         html.Div(
             children=[
-                html.Span(game['date']),
-                html.Span(' - '),
-                html.Span(teams[teams['Index'] == game['against']]['Team']),
-                html.Span(" - W(%): "),
-                html.Span(teams[teams['Index'] == game['against']]['W (%)'])
+                html.H5(tbl[selected_team]['Team']),
+                html.Span('Winning (%): '),
+                html.Span(tbl[selected_team]['W (%)']),
+                html.H5(
+                    className= 'mt-3',
+                    children='Against'),
+            ]
+        ),
+        html.Div(
+            children=[
+                html.Div(
+                    children=[
+                        html.Span(game['date']),
+                        html.Span(' - '),
+                        html.Span(teams[teams['Index'] == game['against']]['Team']),
+                        html.Span(" - W(%): "),
+                        html.Span(
+                            className = 'text-danger font-weight-bold' if teams[teams['Index'] == game['against']]['W (%)'].item() > tbl[selected_team]['W (%)'] else 'text-success',
+                            children = teams[teams['Index'] == game['against']]['W (%)']
+                        )
+                    ]
+                )
+                for game in tbl[selected_team]['Upcoming Games']
             ]
         )
-        for game in tbl[selected_team]['Upcoming Games']
     ]
 
     if (active_cell['column_id'] == 'Count'):
