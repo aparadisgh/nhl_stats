@@ -1,0 +1,15 @@
+When starting
+git checkout dev
+git branch mr
+git checkout mr
+
+DO WORK
+
+git add git_helper.txt
+git commit -m"changed something"
+git pull origin dev check if up to date
+
+if up to date
+git checkout dev
+git merge mr
+git push origin dev
