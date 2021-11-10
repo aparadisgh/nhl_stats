@@ -26,7 +26,7 @@ from utils import nhl_api
 
 layout = html.Div(
     id='app-container',
-    className='my-4',
+    className='container-xl',
     children=[
         html.H5('Team Stats'),
         html.P('Select time span to update upcoming games count'),

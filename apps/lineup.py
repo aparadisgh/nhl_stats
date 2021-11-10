@@ -30,7 +30,7 @@ layout = html.Div(
                                 html.Div(
                                     id='player-cards',
                                     className='row',
-                                    children=['Roster']
+                                    children=[]
                                 )
                             ]
                         )
@@ -48,7 +48,7 @@ layout = html.Div(
                         html.H3('Alerts'),
                         html.P(
                             id='expected-games',
-                            children=['Alerts']
+                            children=[]
                         )
                     ]
                 )
@@ -115,7 +115,7 @@ def update_cards(input_value):  # pylint: disable=unused-argument
                                             'font-size': '200%'},
                                         className= "text-success fw-bold" if row['PPG'] > 5 else "text-danger" if row['PPG'] < 3 else '',
                                         children=[
-                                            round(row['PPG'], 1)
+                                            f"{round(row['PPG'], 1):.1f}"
                                         ]
                                     ) if row['info_rosterStatus'] == "Y" else
                                     html.Span(
@@ -126,7 +126,7 @@ def update_cards(input_value):  # pylint: disable=unused-argument
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-2 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-2 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
                         )
                         for index, row in df.iterrows() if row['info_primaryPosition_type'] == 'Forward'
                     ]
@@ -149,7 +149,7 @@ def update_cards(input_value):  # pylint: disable=unused-argument
                                             'font-size': '200%'},
                                         className= "text-success fw-bold" if row['PPG'] > 5 else "text-danger" if row['PPG'] < 3 else '',
                                         children=[
-                                            round(row['PPG'], 1)
+                                            f"{round(row['PPG'], 1):.1f}"
                                         ]
                                     ) if row['info_rosterStatus'] == "Y" else
                                     html.Span(
@@ -182,7 +182,7 @@ def update_cards(input_value):  # pylint: disable=unused-argument
                                             'font-size': '200%'},
                                         className= "text-success fw-bold" if row['Goalie_PPG'] > 5 else "text-danger" if row['Goalie_PPG'] < 3 else '',
                                         children=[
-                                            round(row['Goalie_PPG'], 1)
+                                            f"{round(row['Goalie_PPG'], 1):.1f}"
                                         ]
                                     ) if row['info_rosterStatus'] == "Y" else
                                     html.Span(
@@ -193,7 +193,7 @@ def update_cards(input_value):  # pylint: disable=unused-argument
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-2 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-2 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
                         )
                         for index, row in df.iterrows() if row['info_primaryPosition_type'] == 'Goalie'
                     ]
