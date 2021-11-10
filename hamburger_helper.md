@@ -1,5 +1,5 @@
 # Hamburger Helper
-## GIT Worklow
+## GIT Simple Worklow
 ### When starting
 (NEVER WORK/COMMIT ON DEV)
 
@@ -13,11 +13,11 @@ git checkout <your_branch>
 ```bash
 git add <modified_file>
 git commit -m"<commit description message>"
-git pull origin dev
 ```
 
-### If up to date, push to Github (origin)
+### Upload to Github (origin) to share your work
 ```bash
+git pull origin dev
 git checkout dev
 git merge <your_branch>
 git push origin dev
