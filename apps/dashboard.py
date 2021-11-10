@@ -1,6 +1,7 @@
 import pandas as pd
 from dash import html
-from dash.dependencies import Input, Output
+from dash import dcc
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 
@@ -10,6 +11,7 @@ from utils import rotowire
 from utils import nhl_api
 from utils import rotowire
 from utils import general
+from utils import team_abr
 
 from apps.aparadis import ROSTERS
 
@@ -20,8 +22,23 @@ layout = html.Div(
         html.Div(
             className='row',
             children=[
+                dcc.Input(id='range', type='number', min=2, max=10, step=1),
+                html.P(id= 'number-output', children=[]),
                 html.Div(
-                    className='col-9',
+                    #className='col-xl-3 p-2 bg-light border rounded',
+                    className='col-xl-3 p-2',
+                    children=[
+                        
+                        html.H3('Alerts'),
+                        #html.Hr(),
+                        html.P(
+                            id='expected-games',
+                            children=[]
+                        )
+                    ]
+                ),
+                html.Div(
+                    className='col-xl-9 p-2',
                     children=[
                         html.H3('Roster'),
                         html.Div(
@@ -35,35 +52,36 @@ layout = html.Div(
                             ]
                         )
                     ]
-                ),
-
-                html.Div(
-                    className='col-3',
-                    children=[
-                        html.H3('Options'),
-                        daq.BooleanSwitch(
-                            id='my-boolean-switch', 
-                            on=False,
-                        ),
-                        html.H3('Alerts'),
-                        html.P(
-                            id='expected-games',
-                            children=[]
-                        )
-                    ]
                 )
-
             ]
         )
     ]
 )
 
+@app.callback(
+    Output('url', 'search'),
+    Input('range', 'value')
+)
+def update_search(val):  # pylint: disable=unused-argumen
+
+    return '?' + str(val)
+
+@app.callback(
+    Output('number-output', 'children'),
+    Input('range', 'value')
+)
+def update_output(val):  # pylint: disable=unused-argumen
+
+    return [str(val)]
 
 @app.callback(
     Output('player-cards', 'children'),
-    Input('app-container', 'id')
+    Output('range', 'value'),
+    Input('app-container', 'id'),
+    State('range', 'value'),
+    State('url', 'search')
 )
-def update_cards(input_value):  # pylint: disable=unused-argument
+def on_app_load(input_value, val, url_search):  # pylint: disable=unused-argument
 
     players = [{
         'info': nhl_api.get_player_info(player['id']),
@@ -101,8 +119,9 @@ def update_cards(input_value):  # pylint: disable=unused-argument
 
     children = [
         html.Div(
-            className='col-4',
+            className='col-md-4',
             children=[
+                html.Hr(),
                 html.H5('Forwards'),
                 html.Div(
                     children=[
@@ -135,8 +154,9 @@ def update_cards(input_value):  # pylint: disable=unused-argument
 
         ),
         html.Div(
-            className='col-4',
+            className='col-md-4',
             children=[
+                html.Hr(),
                 html.H5('Defensemans'),
                 html.Div(
                     children=[
@@ -168,8 +188,9 @@ def update_cards(input_value):  # pylint: disable=unused-argument
             ]
         ),
         html.Div(
-            className='col-4',
+            className='col-md-4',
             children=[
+                html.Hr(),
                 html.H5('Goalies'),
                 html.Div(
                     children=[
@@ -202,7 +223,9 @@ def update_cards(input_value):  # pylint: disable=unused-argument
         )
     ]
 
-    return children
+    num = url_search.replace('?','')
+
+    return children, num
 
 
 @app.callback(

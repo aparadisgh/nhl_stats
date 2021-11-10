@@ -6,9 +6,12 @@ The web app URL routing is define below.
 
 APP_VERSION = 'v1.4.0'
 
+from urllib import parse
+from flask import request
+
 from dash import dcc
 from dash import html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 
 from app import app
@@ -16,7 +19,7 @@ from app import app
 from apps import app1
 from apps import app2
 from apps import expected_goalies
-from apps import lineup
+from apps import dashboard
 
 import config
 
@@ -36,9 +39,13 @@ app.layout = html.Div(
                     children=[
                         dbc.Nav(
                             [
+                                dbc.NavItem(
+                                    dbc.NavLink("My Dashboard", href='/dashboard', class_name="link-light"),
+                                    #class_name='border-end border-light'
+                                ),
                                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
                                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
-                                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
+                                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")),
                             ],
                         )
                     ]
@@ -62,8 +69,10 @@ app.layout = html.Div(
 )
 
 @app.callback(Output('page-content', 'children'),
-              Input('url', 'pathname'))
-def display_page(pathname):
+              Input('url', 'pathname'),
+              State('url','search')
+)
+def display_page(pathname, search):
     """Updates page content based on URL"""
 
     if pathname == '/teams' or pathname == '/':
@@ -73,7 +82,7 @@ def display_page(pathname):
     elif pathname == '/goalies':
         return expected_goalies.layout
     if pathname == '/dashboard':
-        return lineup.layout
+        return dashboard.layout
     else:
         return '404'
 

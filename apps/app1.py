@@ -67,7 +67,7 @@ layout = html.Div(
     Output('date-picker-div', 'children'),
     Input('app-container','id')
 )
-def update_output_div(input_value): # pylint: disable=unused-argument
+def on_app_load(input_value): # pylint: disable=unused-argument
     """Update date picker on page load
 
     This callback sets the date picker for the following week (Monday to Sunday)
