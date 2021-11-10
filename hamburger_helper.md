@@ -19,7 +19,7 @@ git pull origin dev
 ### If up to date, push to Github (origin)
 ```bash
 git checkout dev
-git merge mr
+git merge <your_branch>
 git push origin dev
 ```
 
