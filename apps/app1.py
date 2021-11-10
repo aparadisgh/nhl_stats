@@ -133,7 +133,7 @@ def toggle_modal(n1, active_cell, is_open, start_date, end_date, tbl):
                         html.Span(teams[teams['Index'] == game['against']]['Team']),
                         html.Span(" - W(%): "),
                         html.Span(
-                            className = 'text-danger font-weight-bold' if teams[teams['Index'] == game['against']]['W (%)'].item() > tbl[selected_team]['W (%)'] else 'text-success',
+                            className = 'text-danger font-weight-bold' if teams[teams['Index'] == game['against']]['W (%)'].item() > tbl[selected_team]['W (%)'] else 'text-success font-weight-bold',
                             children = teams[teams['Index'] == game['against']]['W (%)']
                         )
                     ]

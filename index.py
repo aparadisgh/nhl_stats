@@ -15,28 +15,47 @@ from app import app
 
 from apps import app1
 from apps import app2
-from apps import expected_goalies#, personal_dashboard
+from apps import expected_goalies
+from apps import lineup
 
 import config
 
 app.layout = html.Div(
-    className='container-xl text-muted p-4 bg-white',
-    children=[
-        dcc.Location(id='url', refresh=False),
-        html.H3('The League | Advanced Analytics'),
-        dbc.Nav(
-            [
-                dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
-                dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
-                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
-            ],
-            class_name= "bg-dark rounded-1 mt-4"
-        ),
-        html.Div(id='page-content'), # Container where apps are displayed
+    children = [
+    html.Div(
+        className='container-fluid text-muted py-2',
+        children=[
+            dcc.Location(id='url', refresh=False),
+            html.H3('The League | Advanced Analytics')
+        ]),
         html.Div(
-            className='text-center text-muted p-4',
+            className='nav-banner',
             children=[
-                html.P(f'{APP_VERSION}')
+                html.Div(
+                    className='container-fluid text-muted py-1',
+                    children=[
+                        dbc.Nav(
+                            [
+                                dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
+                                dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
+                                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")), #Hidden link
+                            ],
+                        )
+                    ]
+                )
+            ]
+
+        ),
+        html.Div(
+            className='container-fluid text-muted p-4',
+            children=[
+                html.Div(id='page-content'), # Container where apps are displayed
+                html.Div(
+                    className='text-center text-muted p-4',
+                    children=[
+                        html.P(f'{APP_VERSION}')
+                    ]
+                )
             ]
         )
     ]
@@ -53,8 +72,8 @@ def display_page(pathname):
         return app2.layout
     elif pathname == '/goalies':
         return expected_goalies.layout
-    #elif pathname == '/users/aparadis':
-        #return personal_dashboard.layout
+    if pathname == '/dashboard':
+        return lineup.layout
     else:
         return '404'
 

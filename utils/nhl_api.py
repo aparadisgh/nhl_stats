@@ -11,6 +11,8 @@ import json
 import requests
 import pandas as pd
 
+SEASON = '20212022'
+
 def get_records():
     r = requests.get("https://statsapi.web.nhl.com/api/v1/standings")
     r_dict = json.loads(r.text)
@@ -71,3 +73,23 @@ def get_next_week(startDate_str,endDate_str):
     df_temp = df_temp.set_index('ID')
     df_temp['Count'] = df_temp['Upcoming Games'].str.len()
     return df_temp
+
+def get_player_stats(player_id):
+    r = requests.get(f'https://statsapi.web.nhl.com/api/v1/people/{player_id}/stats?stats=statsSingleSeason&season={SEASON}') # pylint: disable=line-too-long
+    r_dict = json.loads(r.text)
+
+    player_dict = {}
+    if r_dict['stats'][0]['splits']:
+        player_dict = r_dict['stats'][0]['splits'][0]['stat']
+
+    return player_dict
+
+def get_player_info(player_id):
+    r = requests.get(f'https://statsapi.web.nhl.com/api/v1/people/{player_id}') # pylint: disable=line-too-long
+    r_dict = json.loads(r.text)
+
+    player_dict = {}
+    if r_dict['people']:
+        player_dict = r_dict['people'][0]
+
+    return player_dict
