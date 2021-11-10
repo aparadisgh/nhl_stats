@@ -1,5 +1,9 @@
 # Hamburger Helper
-## GIT Simple Worklow
+### Table of Contents
+1. [GIT](#git-simple-workflow)
+2. [PIP](#pip-workflow)
+
+## GIT Simple Workflow
 ### When starting
 (NEVER WORK/COMMIT ON DEV)
 
@@ -23,7 +27,7 @@ git merge <your_branch>
 git push origin dev
 ```
 
-## PIP Worklow
+## PIP Workflow
 ### Create a virtual environement
 Once after cloning a new repo:
 ```shell
