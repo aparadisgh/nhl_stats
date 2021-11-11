@@ -6,9 +6,6 @@ The web app URL routing is define below.
 
 APP_VERSION = 'v1.4.0'
 
-from urllib import parse
-from flask import request
-
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
@@ -40,7 +37,7 @@ app.layout = html.Div(
                         dbc.Nav(
                             [
                                 dbc.NavItem(
-                                    dbc.NavLink("My Dashboard", href='/dashboard', class_name="link-light"),
+                                    dbc.NavLink("My Dashboard", href='/dashboard?players=8476412&8474166&8477493&8475184&8473512&8475166&8474031&8480145&8473563#currentSeason', class_name="link-light"),
                                     #class_name='border-end border-light'
                                 ),
                                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),

@@ -3,7 +3,7 @@ from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-import dash_daq as daq
+#import dash_daq as daq
 
 from app import app
 
@@ -11,7 +11,9 @@ from utils import rotowire
 from utils import nhl_api
 from utils import rotowire
 from utils import general
-from utils import team_abr
+
+
+#from utils import team_abr
 
 from apps.aparadis import ROSTERS
 
@@ -19,11 +21,31 @@ layout = html.Div(
     id='app-container',
     className='my-0',
     children=[
+
         html.Div(
             className='row',
             children=[
-                dcc.Input(id='range', type='number', min=2, max=10, step=1),
-                html.P(id= 'number-output', children=[]),
+            html.Div(
+                    className='col-xl-3 p-2',
+                    children=[
+                 dcc.Dropdown(
+                    id='timespan-dd',
+                    options=[
+                        {'label': 'Season', 'value': 'currentSeason'},
+                        {'label': 'Last 14 days', 'value': 'last14days'},
+                        {'label': 'Last Week', 'value': 'lastWeek'}
+                    ],
+                    #value='currentSeason'
+                ),
+                html.P(id= 'timespan-val', children=[]),
+                    ])
+            ]
+        ),
+
+        html.Div(
+            className='row',
+            children=[
+                
                 html.Div(
                     #className='col-xl-3 p-2 bg-light border rounded',
                     className='col-xl-3 p-2',
@@ -59,35 +81,43 @@ layout = html.Div(
 )
 
 @app.callback(
-    Output('url', 'search'),
-    Input('range', 'value')
+    Output('url', 'hash'),
+    Input('timespan-dd', 'value')
 )
 def update_search(val):  # pylint: disable=unused-argumen
 
-    return '?' + str(val)
+    url_part = val
+    if val:
+        url_part = '#' + url_part
+
+    return url_part
 
 @app.callback(
-    Output('number-output', 'children'),
-    Input('range', 'value')
+    Output('timespan-val', 'children'),
+    Input('timespan-dd', 'value')
 )
 def update_output(val):  # pylint: disable=unused-argumen
 
-    return [str(val)]
+    return [val]
 
 @app.callback(
     Output('player-cards', 'children'),
-    Output('range', 'value'),
+    Output('timespan-dd', 'value'),
     Input('app-container', 'id'),
-    State('range', 'value'),
-    State('url', 'search')
+    State('timespan-dd', 'value'),
+    State('url', 'search'),
+    State('url', 'hash')
 )
-def on_app_load(input_value, val, url_search):  # pylint: disable=unused-argument
+def on_app_load(input_value, val, url_search, url_hash):  # pylint: disable=unused-argument
+
+    player_query = url_search.replace('?players=','').split("&")
+    #print(player_query)
 
     players = [{
-        'info': nhl_api.get_player_info(player['id']),
-        'stats': nhl_api.get_player_stats(player['id'])
+        'info': nhl_api.get_player_info(player_id),
+        'stats': nhl_api.get_player_stats(player_id)
     }
-        for player in ROSTERS['aparadis']['team']
+        for player_id in player_query
     ]
 
     records = [
@@ -223,9 +253,9 @@ def on_app_load(input_value, val, url_search):  # pylint: disable=unused-argumen
         )
     ]
 
-    num = url_search.replace('?','')
+    hash = url_hash.replace('#','')
 
-    return children, num
+    return children, hash
 
 
 @app.callback(
