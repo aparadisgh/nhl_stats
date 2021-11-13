@@ -1,58 +1,42 @@
+import math
+import json
+import datetime
+
 import pandas as pd
+import dash
 from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-#import dash_daq as daq
 
 from app import app
 
 from utils import rotowire
-from utils import nhl_api
-from utils import rotowire
-from utils import general
+from utils.team_abr import ABBREVIATIONS
+from utils import league_param
 
+BAD_PLAYER = 3 # threshold for bad average fan pointts
 
-#from utils import team_abr
+with open('data/player_names.json', 'r') as fp:
+        player_names = json.load(fp)
 
-from apps.aparadis import ROSTERS
+player_dd_options = [
+    {'label': value, 'value': key}
+    for key, value in player_names.items()
+]
 
 layout = html.Div(
     id='app-container',
     className='my-0',
     children=[
-
         html.Div(
             className='row',
             children=[
-            html.Div(
-                    className='col-xl-3 p-2',
-                    children=[
-                 dcc.Dropdown(
-                    id='timespan-dd',
-                    options=[
-                        {'label': 'Season', 'value': 'currentSeason'},
-                        {'label': 'Last 14 days', 'value': 'last14days'},
-                        {'label': 'Last Week', 'value': 'lastWeek'}
-                    ],
-                    #value='currentSeason'
-                ),
-                html.P(id= 'timespan-val', children=[]),
-                    ])
-            ]
-        ),
-
-        html.Div(
-            className='row',
-            children=[
-                
                 html.Div(
-                    #className='col-xl-3 p-2 bg-light border rounded',
                     className='col-xl-3 p-2',
                     children=[
-                        
-                        html.H3('Alerts'),
-                        #html.Hr(),
+                        html.H3('Notifications'),
                         html.P(
                             id='expected-games',
                             children=[]
@@ -62,6 +46,37 @@ layout = html.Div(
                 html.Div(
                     className='col-xl-9 p-2',
                     children=[
+                        html.H3('Options'),
+                        html.Div(
+                            className='row',
+                            children=[
+                                html.Div(
+                                    className='col-xl-3 mb-4',
+                                    children=[
+                                        
+                                        dcc.Dropdown(
+                                            id='timespan-dd',
+                                            options=[
+                                                {'label': 'Season', 'value': 'currentSeason'},
+                                                {'label': 'Last 14 days', 'value': 'last14days'},
+                                                {'label': 'This Week', 'value': 'thisWeek'}
+                                            ],
+                                        )
+                                    ]
+                                ),
+                                html.Div(
+                                    className='col-xl-9 mb-4',
+                                    children=[
+                                        dcc.Dropdown(
+                                            id='player-dd',
+                                            options= player_dd_options,
+                                            multi=True,
+                                            persistence=True,
+                                        ),
+                                    ]
+                                )
+                            ]
+                        ),
                         html.H3('Roster'),
                         html.Div(
                             className='row',
@@ -84,7 +99,7 @@ layout = html.Div(
     Output('url', 'hash'),
     Input('timespan-dd', 'value')
 )
-def update_search(val):  # pylint: disable=unused-argumen
+def update_hash(val):  # pylint: disable=unused-argumen
 
     url_part = val
     if val:
@@ -93,59 +108,96 @@ def update_search(val):  # pylint: disable=unused-argumen
     return url_part
 
 @app.callback(
-    Output('timespan-val', 'children'),
-    Input('timespan-dd', 'value')
+    Output('url', 'search'),
+    Input('player-dd', 'value')
 )
-def update_output(val):  # pylint: disable=unused-argumen
+def update_search(val):  # pylint: disable=unused-argumen
 
-    return [val]
+    url_part = val
+    if val:
+        url_part = '?players=' + '&'.join(val)
+
+    return url_part
 
 @app.callback(
     Output('player-cards', 'children'),
     Output('timespan-dd', 'value'),
+    Output('player-dd', 'value'),
     Input('app-container', 'id'),
-    State('timespan-dd', 'value'),
+    Input('timespan-dd', 'value'),
+    Input('player-dd', 'value'),
     State('url', 'search'),
     State('url', 'hash')
 )
-def on_app_load(input_value, val, url_search, url_hash):  # pylint: disable=unused-argument
+def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: disable=unused-argument
 
+    if not url_search and not players:
+        raise PreventUpdate
+
+    ctx = dash.callback_context
+
+    # timespan sync (dropdown vs URL)
+    if not timespan:
+        timespan = 'currentSeason'
+
+    hash = url_hash.replace('#','')
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    timespan_return_value = timespan if trigger_id == "timespan-dd" or not hash else hash
+
+    # player query sync (dropdown vs URL)
     player_query = url_search.replace('?players=','').split("&")
-    #print(player_query)
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    player_query = players if trigger_id == "player-dd" else player_query
 
-    players = [{
-        'info': nhl_api.get_player_info(player_id),
-        'stats': nhl_api.get_player_stats(player_id)
+ # read stats from data cache
+    with open('data/player_stats.json', 'r') as fp:
+        data_dict = json.load(fp)
+
+    # convert stats dictionaries into dataframes
+    player_stats = {
+        key: pd.DataFrame(data_dict[key]) 
+        for key in data_dict
     }
+
+    with open('data/player_names.json', 'r') as fp:
+        player_names = json.load(fp)
+
+    with open('data/player_pos.json', 'r') as fp:
+        player_pos = json.load(fp)
+
+    next_monday = league_param.get_next_monday()
+    last_monday = next_monday + datetime.timedelta(days=-7)
+    last_monday_str = last_monday.strftime('%Y-%m-%d')
+    today = datetime.date.today()
+    today_str = today.strftime('%Y-%m-%d')
+    two_weeks_ago = today + datetime.timedelta(days=-14)
+    two_weeks_ago_str = two_weeks_ago.strftime('%Y-%m-%d')
+
+    players = [
+        {
+        'name': player_names[player_id],
+        'stats': {
+            'df': player_stats[player_id],
+            'fan_points':{
+                'currentSeason': player_stats[player_id]['Fantasy Points'].mean(),
+                'last14days': player_stats[player_id]
+                [
+                    (player_stats[player_id]['Date'] >= two_weeks_ago_str) 
+                    & (player_stats[player_id]['Date'] <= today_str)
+                ]['Fantasy Points'].mean(),
+                'thisWeek': player_stats[player_id]
+                [
+                    (player_stats[player_id]['Date'] >= last_monday_str)
+                    & (player_stats[player_id]['Date'] <= today_str)
+                ]['Fantasy Points'].mean(),
+            }
+        },
+        'position': player_pos[player_id]
+        }
         for player_id in player_query
     ]
 
-    records = [
-        general.convert_to_flat_dict(player, {})
-        for player in players
-    ]
-
-    df = pd.DataFrame(records)
-    df = df.set_index('info_id')
-
-    df['PPG'] = (
-        df['stats_goals'] * 3 +
-        df['stats_assists'] * 2 +
-        df['stats_plusMinus'] * 1 +
-        df['stats_powerPlayPoints'] * 1 +
-        df['stats_hits'] * 0.25 +
-        df['stats_blocked'] * 0.5
-    )/df['stats_games']
-
-    df['Goalie_PPG'] = (
-        df['stats_wins'] * 3 +
-        df['stats_goalsAgainst'] * -1 +
-        df['stats_saves'] * 0.2 +
-        df['stats_shutouts']
-    )/df['stats_games']
-
-    df = df.sort_values(by=['PPG'], ascending=False)
-    df = df.sort_values(by=['Goalie_PPG'], ascending=False)
+    players = sorted(players, key=lambda d: d['stats']['fan_points'][timespan], reverse=True) 
 
     children = [
         html.Div(
@@ -158,30 +210,24 @@ def on_app_load(input_value, val, url_search, url_hash):  # pylint: disable=unus
                         dbc.Card(
                             dbc.CardBody(
                                 [
-                                    html.H5(row['info_fullName']),
+                                    html.H5(player['name']),
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-success fw-bold" if row['PPG'] > 5 else "text-danger" if row['PPG'] < 3 else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
                                         children=[
-                                            f"{round(row['PPG'], 1):.1f}"
+                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
                                         ]
-                                    ) if row['info_rosterStatus'] == "Y" else
-                                    html.Span(
-                                        style={
-                                            'font-size': '200%'},
-                                        children=['-,-']
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
                         )
-                        for index, row in df.iterrows() if row['info_primaryPosition_type'] == 'Forward'
+                        for player in players if player["position"] != 'G' and player["position"] != 'D'
                     ]
                 )
             ]
-
         ),
         html.Div(
             className='col-md-4',
@@ -193,26 +239,21 @@ def on_app_load(input_value, val, url_search, url_hash):  # pylint: disable=unus
                         dbc.Card(
                             dbc.CardBody(
                                 [
-                                    html.H5(row['info_fullName']),
+                                    html.H5(player['name']),
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-success fw-bold" if row['PPG'] > 5 else "text-danger" if row['PPG'] < 3 else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
                                         children=[
-                                            f"{round(row['PPG'], 1):.1f}"
+                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
                                         ]
-                                    ) if row['info_rosterStatus'] == "Y" else
-                                    html.Span(
-                                        style={
-                                            'font-size': '200%'},
-                                        children=['-,-']
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
                         )
-                        for index, row in df.iterrows() if row['info_primaryPosition_type'] == 'Defenseman'
+                        for player in players if player["position"] == 'D'
                     ]
                 )
             ]
@@ -227,63 +268,107 @@ def on_app_load(input_value, val, url_search, url_hash):  # pylint: disable=unus
                         dbc.Card(
                             dbc.CardBody(
                                 [
-                                    html.H5(row['info_fullName']),
+                                    html.H5(player['name']),
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-success fw-bold" if row['Goalie_PPG'] > 5 else "text-danger" if row['Goalie_PPG'] < 3 else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
                                         children=[
-                                            f"{round(row['Goalie_PPG'], 1):.1f}"
+                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
                                         ]
-                                    ) if row['info_rosterStatus'] == "Y" else
-                                    html.Span(
-                                        style={
-                                            'font-size': '200%'},
-                                        children=['-,-']
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
                         )
-                        for index, row in df.iterrows() if row['info_primaryPosition_type'] == 'Goalie'
+                        for player in players if player["position"] == 'G'
                     ]
                 )
             ]
+
         )
     ]
 
-    hash = url_hash.replace('#','')
 
-    return children, hash
+    return children, timespan_return_value, player_query
 
 
 @app.callback(
     Output('expected-games', 'children'),
-    Input('app-container', 'id')
+    Input('app-container', 'id'),
+    Input('player-dd', 'value'),
+    State('url', 'search'),
 )
-def update_goalie(input_value):  # pylint: disable=unused-argument
+def update_goalie(unused, players, url_search):  # pylint: disable=unused-argument
+
+    if not url_search and not players:
+        raise PreventUpdate
+
+    #player_query = url_search.replace('?players=','').split("&")
+    player_query = players
+
     expected_goalies = rotowire.get_expected_goalies()
-    selected_team = 'STL'
-    selected_goalie = 'Jordan Binnington'
 
-    start_count = 0
-    confirmed_count = 0
-    for game in expected_goalies[selected_team]:
-        if game['goalie'] == selected_goalie:
-            start_count = start_count + 1
-        if game['status'] == 'Confirmed':
-            confirmed_count = confirmed_count + 1
-    confirmed = confirmed_count / len(expected_goalies[selected_team]) * 100
-    number_of_games = len(expected_goalies[selected_team])
-    text = f'Upcoming week: {selected_goalie} starts {start_count} out of {number_of_games} games ({confirmed}% confirmed)'
+    with open('data/player_pos.json', 'r') as fp:
+        player_pos = json.load(fp)
 
-    children = [
-        html.H5(' '),
-        html.Div(
-            className="alert alert-success",
-            children=text
-        )
-    ]
+    with open('data/player_names.json', 'r') as fp:
+        player_names = json.load(fp)
+
+    with open('data/player_team.json', 'r') as fp:
+        player_teams = json.load(fp)
+
+    children = []
+    for player in player_query:
+        if player_pos[player] == 'G':
+            selected_team = ABBREVIATIONS['rotowire'][str(player_teams[player])]
+            selected_goalie = player_names[player].split()[-1]
+
+            start_count = 0
+            confirmed_count = 0
+            for game in expected_goalies[selected_team]:
+                if selected_goalie in game['goalie']:
+                    start_count = start_count + 1
+                if game['status'] == 'Confirmed':
+                    confirmed_count = confirmed_count + 1
+            confirmed = confirmed_count / len(expected_goalies[selected_team]) * 100
+            number_of_games = len(expected_goalies[selected_team])
+            text = f'Starts {start_count} out of {number_of_games} upcoming games ({confirmed}% confirmed)'
+
+            if number_of_games > 0:
+                if (start_count/number_of_games)>0.5:
+                    children.append(
+                        html.Div(
+                            className="alert alert-success",
+                            children=[
+                                
+                                html.H6([html.I(className="bi bi-check-circle-fill me-2"), selected_goalie]),
+                                html.Span(text)
+                            ]
+                        )
+                    )
+                elif (start_count/number_of_games)>0:
+                    children.append(
+                        html.Div(
+                            className="alert alert-warning",
+                            children=[
+                                
+                                html.H6([html.I(className="bi bi-exclamation-triangle-fill me-2"), selected_goalie]),
+                                html.Span(text)
+                            ]
+                        )
+                    )
+                else:
+                    children.append(
+                        html.Div(
+                            className="alert alert-danger",
+                            children=[
+                                
+                                html.H6([html.I(className="bi bi-exclamation-triangle-fill me-2"), selected_goalie]),
+                                html.Span(text)
+                            ]
+                        )
+                    )
 
     return children

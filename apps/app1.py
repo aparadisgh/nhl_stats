@@ -17,7 +17,7 @@ from dash import dcc
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-from pkg_resources import add_activation_listener
+#from pkg_resources import add_activation_listener
 
 from app import app
 

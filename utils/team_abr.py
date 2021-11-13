@@ -1,4 +1,4 @@
-{
+ABBREVIATIONS = {
     'nhl_api':{
         "1": "NJD",
         "2": "NYI", 

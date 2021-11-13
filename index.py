@@ -15,7 +15,6 @@ from app import app
 
 from apps import app1
 from apps import app2
-from apps import expected_goalies
 from apps import dashboard
 
 import config
@@ -37,12 +36,11 @@ app.layout = html.Div(
                         dbc.Nav(
                             [
                                 dbc.NavItem(
-                                    dbc.NavLink("My Dashboard", href='/dashboard?players=8476412&8474166&8477493&8475184&8473512&8475166&8474031&8480145&8473563#currentSeason', class_name="link-light"),
-                                    #class_name='border-end border-light'
+                                    #dbc.NavLink("My Dashboard", href='/dashboard?players=8476412&8474166&8477493&8475184&8473512&8475166&8474031&8480145#currentSeason', class_name="link-light"),
+                                    dbc.NavLink("My Dashboard", href='/dashboard', class_name="link-light"),
                                 ),
                                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
                                 dbc.NavItem(dbc.NavLink("Player Stats", href='/players', class_name="link-light")),
-                                dbc.NavItem(dbc.NavLink("Expected Goalies", href='/goalies', class_name="link-light")),
                             ],
                         )
                     ]
@@ -76,12 +74,10 @@ def display_page(pathname, search):
         return app1.layout
     elif pathname == '/players':
         return app2.layout
-    elif pathname == '/goalies':
-        return expected_goalies.layout
-    if pathname == '/dashboard':
+    elif pathname == '/dashboard':
         return dashboard.layout
     else:
-        return '404'
+        return 'Error 404 - Page Not Found'
 
 if __name__ == '__main__':
     app.run_server(host=config.HOST,port=config.PORT,debug=config.DEBUG)
