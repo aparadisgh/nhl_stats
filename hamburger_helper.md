@@ -40,6 +40,3 @@ pip install -r requirements.txt
 ```shell
 pip freeze > requirements.txt
 ``` 
-
-## URL Routing with Dash
-- _Refresh_ must be set to _False_

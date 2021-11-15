@@ -340,10 +340,20 @@ def update_goalie(unused, players, url_search):  # pylint: disable=unused-argume
                 if (start_count/number_of_games)>0.5:
                     children.append(
                         html.Div(
-                            className="alert alert-success",
+                            className="alert alert-secondary border-secondary",
                             children=[
                                 
-                                html.H6([html.I(className="bi bi-check-circle-fill me-2"), selected_goalie]),
+                                html.H6(
+                                    [
+                                        html.I(
+                                            className="bi bi-check-circle-fill me-2 green-text",
+                                            style={
+                                                'color': 'green'
+                                            }
+                                        ), 
+                                        selected_goalie
+                                    ]
+                                ),
                                 html.Span(text)
                             ]
                         )
@@ -362,7 +372,7 @@ def update_goalie(unused, players, url_search):  # pylint: disable=unused-argume
                 else:
                     children.append(
                         html.Div(
-                            className="alert alert-danger",
+                            className="alert alert-danger border border-danger",
                             children=[
                                 
                                 html.H6([html.I(className="bi bi-exclamation-triangle-fill me-2"), selected_goalie]),
