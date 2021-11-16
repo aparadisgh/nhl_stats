@@ -56,6 +56,7 @@ layout = html.Div(
                                         
                                         dcc.Dropdown(
                                             id='timespan-dd',
+                                            clearable=False,
                                             options=[
                                                 {'label': 'Season', 'value': 'currentSeason'},
                                                 {'label': 'Last 14 days', 'value': 'last14days'},
@@ -101,9 +102,9 @@ layout = html.Div(
 )
 def update_hash(val):  # pylint: disable=unused-argumen
 
-    url_part = val
+    url_part = ""
     if val:
-        url_part = '#' + url_part
+        url_part = '#' + val
 
     return url_part
 
@@ -113,7 +114,7 @@ def update_hash(val):  # pylint: disable=unused-argumen
 )
 def update_search(val):  # pylint: disable=unused-argumen
 
-    url_part = val
+    url_part = ""
     if val:
         url_part = '?players=' + '&'.join(val)
 
@@ -123,23 +124,23 @@ def update_search(val):  # pylint: disable=unused-argumen
     Output('player-cards', 'children'),
     Output('timespan-dd', 'value'),
     Output('player-dd', 'value'),
-    Input('app-container', 'id'),
     Input('timespan-dd', 'value'),
     Input('player-dd', 'value'),
     State('url', 'search'),
     State('url', 'hash')
 )
-def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: disable=unused-argument
-
+def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unused-argument
+    
+    #Prevent Update if no query is made
     if not url_search and not players:
+        raise PreventUpdate
+
+    if not url_hash and not timespan:
         raise PreventUpdate
 
     ctx = dash.callback_context
 
     # timespan sync (dropdown vs URL)
-    if not timespan:
-        timespan = 'currentSeason'
-
     hash = url_hash.replace('#','')
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     timespan_return_value = timespan if trigger_id == "timespan-dd" or not hash else hash
@@ -197,7 +198,7 @@ def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: d
         for player_id in player_query
     ]
 
-    players = sorted(players, key=lambda d: d['stats']['fan_points'][timespan], reverse=True) 
+    players = sorted(players, key=lambda d: d['stats']['fan_points'][timespan_return_value], reverse=True) 
 
     children = [
         html.Div(
@@ -214,15 +215,15 @@ def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: d
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan_return_value] < BAD_PLAYER else '',
                                         children=[
-                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
+                                            f"{player['stats']['fan_points'][timespan_return_value]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan_return_value]) else "-,-"
                                         ]
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' 
                         )
                         for player in players if player["position"] != 'G' and player["position"] != 'D'
                     ]
@@ -243,15 +244,15 @@ def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: d
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan_return_value] < BAD_PLAYER else '',
                                         children=[
-                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
+                                            f"{player['stats']['fan_points'][timespan_return_value]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan_return_value]) else "-,-"
                                         ]
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' 
                         )
                         for player in players if player["position"] == 'D'
                     ]
@@ -272,15 +273,15 @@ def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: d
                                     html.Span(
                                         style={
                                             'font-size': '200%'},
-                                        className= "text-danger" if player['stats']['fan_points'][timespan] < BAD_PLAYER else '',
+                                        className= "text-danger" if player['stats']['fan_points'][timespan_return_value] < BAD_PLAYER else '',
                                         children=[
-                                            f"{player['stats']['fan_points'][timespan]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan]) else "-,-"
+                                            f"{player['stats']['fan_points'][timespan_return_value]:.1f}" if not math.isnan(player['stats']['fan_points'][timespan_return_value]) else "-,-"
                                         ]
                                     ),
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' #if row['info_rosterStatus'] == "Y" else 'mb-3 shadow-sm bg-light'
+                            className='mb-3 shadow-sm' 
                         )
                         for player in players if player["position"] == 'G'
                     ]
@@ -299,10 +300,14 @@ def on_app_load(not_used, timespan, players, url_search, url_hash):  # pylint: d
     Input('app-container', 'id'),
     Input('player-dd', 'value'),
     State('url', 'search'),
+    State('timespan-dd', 'value'),
 )
-def update_goalie(unused, players, url_search):  # pylint: disable=unused-argument
+def update_goalie(unused, players, url_search, timespan):  # pylint: disable=unused-argument
 
     if not url_search and not players:
+        raise PreventUpdate
+
+    if not timespan:
         raise PreventUpdate
 
     #player_query = url_search.replace('?players=','').split("&")
@@ -354,7 +359,14 @@ def update_goalie(unused, players, url_search):  # pylint: disable=unused-argume
                                         selected_goalie
                                     ]
                                 ),
-                                html.Span(text)
+                                html.Span(text),
+                                html.Br(),
+                                dcc.Link(
+                                    "rotowire.com",
+                                    className = "link-secondary fst-italic",
+                                    href="https://www.rotowire.com/hockey/starting-goalies.php?view=teams",  
+                                    target="_blank"
+                                )
                             ]
                         )
                     )
@@ -365,7 +377,14 @@ def update_goalie(unused, players, url_search):  # pylint: disable=unused-argume
                             children=[
                                 
                                 html.H6([html.I(className="bi bi-exclamation-triangle me-2"), selected_goalie]),
-                                html.Span(text)
+                                html.Span(text),
+                                html.Br(),
+                                dcc.Link(
+                                    "rotowire.com",
+                                    className = "link-secondary fst-italic",
+                                    href="https://www.rotowire.com/hockey/starting-goalies.php?view=teams",  
+                                    target="_blank"
+                                )
                             ]
                         )
                     )
@@ -376,7 +395,14 @@ def update_goalie(unused, players, url_search):  # pylint: disable=unused-argume
                             children=[
                                 
                                 html.H6([html.I(className="bi bi-exclamation-square me-2"), selected_goalie]),
-                                html.Span(text)
+                                html.Span(text),
+                                html.Br(),
+                                dcc.Link(
+                                    "rotowire.com",
+                                    className = "link-secondary fst-italic",
+                                    href="https://www.rotowire.com/hockey/starting-goalies.php?view=teams",  
+                                    target="_blank"
+                                )
                             ]
                         )
                     )
