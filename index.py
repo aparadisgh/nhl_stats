@@ -28,7 +28,7 @@ app.layout = html.Div(
             html.H3('The League | Advanced Analytics')
         ]),
         html.Div(
-            className='nav-banner',
+            className='nav-banner bg-gradient',
             children=[
                 html.Div(
                     className='container-fluid text-muted py-1',
@@ -36,7 +36,6 @@ app.layout = html.Div(
                         dbc.Nav(
                             [
                                 dbc.NavItem(
-                                    #dbc.NavLink("My Dashboard", href='/dashboard?players=8476412&8474166&8477493&8475184&8473512&8475166&8474031&8480145#currentSeason', class_name="link-light"),
                                     dbc.NavLink("My Dashboard", href='/dashboard', class_name="link-light"),
                                 ),
                                 dbc.NavItem(dbc.NavLink("Team Stats", href='/teams', class_name="link-light")),
