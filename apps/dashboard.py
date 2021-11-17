@@ -34,24 +34,16 @@ layout = html.Div(
             className='row',
             children=[
                 html.Div(
-                    className='col-xl-3 p-2',
+                    className='col-xl-2 p-2',
                     children=[
-                        html.H3('Notifications'),
-                        html.P(
-                            id='expected-games',
-                            children=[]
-                        )
-                    ]
-                ),
-                html.Div(
-                    className='col-xl-9 p-2',
-                    children=[
-                        html.H3('Options'),
                         html.Div(
-                            className='row',
+                            className='p-3 bg-white borders border-secondary rounded shadow',
                             children=[
+                                html.H3('Settings'),
+                                #html.Hr(),
+                                html.H6('Time'),
                                 html.Div(
-                                    className='col-xl-3 mb-4',
+                                    className='mb-3',
                                     children=[
                                         
                                         dcc.Dropdown(
@@ -65,8 +57,9 @@ layout = html.Div(
                                         )
                                     ]
                                 ),
+                                html.H6('Players'),
                                 html.Div(
-                                    className='col-xl-9 mb-4',
+                                    className='mb-3',
                                     children=[
                                         dcc.Dropdown(
                                             id='player-dd',
@@ -77,14 +70,51 @@ layout = html.Div(
                                     ]
                                 )
                             ]
-                        ),
-                        html.H3('Roster'),
+                        )
+                    ]
+                ),
+                html.Div(
+                    className='col-xl-7 p-2',
+                    children=[
                         html.Div(
-                            className='row',
+                            className='p-3 bg-white borders border-secondary rounded shadow',
                             children=[
+                                html.H3('Roster'),
                                 html.Div(
-                                    id='player-cards',
                                     className='row',
+                                    children=[
+                                        html.Div(
+                                            id='player-cards',
+                                            className='row',
+                                            children=[]
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    ]
+                ),
+                html.Div(
+                    className='col-xl-3 p-2',
+                    children=[
+                        html.Div(
+                            className='p-3 bg-white borders border-secondary rounded shadow mb-3',
+                            children=[
+                                html.H3('Projection'),
+                                #html.Hr(),
+                                html.P(
+                                    id='projection-graph',
+                                    children=[]
+                                )
+                            ]
+                        ),
+                        html.Div(
+                            className='p-3 bg-white borders border-secondary rounded shadow',
+                            children=[
+                                html.H3('Notifications'),
+                                #html.Hr(),
+                                html.P(
+                                    id='expected-games',
                                     children=[]
                                 )
                             ]
@@ -223,7 +253,7 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' 
+                            className='mb-3' 
                         )
                         for player in players if player["position"] != 'G' and player["position"] != 'D'
                     ]
@@ -252,7 +282,7 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' 
+                            className='mb-3' 
                         )
                         for player in players if player["position"] == 'D'
                     ]
@@ -281,7 +311,7 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
                                     html.Span(' PPG')
                                 ]
                             ),
-                            className='mb-3 shadow-sm' 
+                            className='mb-3' 
                         )
                         for player in players if player["position"] == 'G'
                     ]

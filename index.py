@@ -48,7 +48,7 @@ app.layout = html.Div(
 
         ),
         html.Div(
-            className='container-fluid text-muted p-4',
+            className='container-fluid text-muted p-4 bg-light',
             children=[
                 html.Div(id='page-content'), # Container where apps are displayed
                 html.Div(

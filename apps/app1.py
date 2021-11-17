@@ -110,8 +110,6 @@ def toggle_modal(n1, active_cell, is_open, start_date, end_date, tbl):
     if start_date and end_date:
         teams = pd.DataFrame(tbl) #Replace with a constant TEAM_INDEX_DF
 
-    #print(teams[teams['Index'] == game['against']]['W (%)'])
-
     selected_team = active_cell['row']
     content = [
         html.Div(
