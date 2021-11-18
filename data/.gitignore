@@ -1,2 +1,3 @@
 *.json
+*.csv
 stats_read_example.py

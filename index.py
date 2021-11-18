@@ -25,7 +25,34 @@ app.layout = html.Div(
         className='container-fluid text-muted py-2',
         children=[
             dcc.Location(id='url', refresh=False),
-            html.H3('The League | Advanced Analytics')
+            html.Div(id='hidden-div', style={'display':'none'}),
+            html.Div(
+                className="d-flex",
+                children=[
+                    html.Div(
+                        children=[
+                            html.H3('The League | Advanced Analytics'),
+                        ]
+                    ),
+                    html.Div(
+                        className="ms-auto",
+                        children=[
+                            html.Div(
+                                className="my-auto",
+                                children=[
+                                    dbc.Button(
+                                        "Refresh Data",
+                                        id='refresh-btn',
+                                        outline=True,
+                                        className="my-auto",
+                                        size="sm"
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                ]
+            )
         ]),
         html.Div(
             className='nav-banner bg-gradient',
@@ -62,9 +89,20 @@ app.layout = html.Div(
     ]
 )
 
-@app.callback(Output('page-content', 'children'),
-              Input('url', 'pathname'),
-              State('url','search')
+@app.callback(
+    Output('hidden-div', 'children'),
+    Input('refresh-btn', 'n_clicks'),
+    prevent_initial_call=True
+)
+def update_data(clicks):
+    #print("clicked! " +str(clicks))
+    exec(open('data/nhl_data_dump.py').read())
+    return ""
+
+@app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    State('url','search')
 )
 def display_page(pathname, search):
     """Updates page content based on URL"""

@@ -48,19 +48,3 @@ def get_expected_goalies():
             
             day_offset = day_offset + 1
     return expected_goalies
-
-"""
-selected_team = 'STL'
-selected_goalie = 'Jordan Binnington'
-
-start_count = 0
-confirmed_count = 0
-for game in expected_goalies[selected_team]:
-    if game['goalie'] == selected_goalie:
-        start_count = start_count + 1
-    if game['status'] =='Confirmed':
-        confirmed_count = confirmed_count + 1
-confirmed = confirmed_count / len(expected_goalies[selected_team]) * 100
-number_of_games = len(expected_goalies[selected_team])
-print(f'Upcoming week: {selected_goalie} starts {start_count} out of {number_of_games} games ({confirmed}% confirmed)')
-"""

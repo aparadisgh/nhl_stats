@@ -13,13 +13,23 @@ import dash_bootstrap_components as dbc
 from app import app
 
 from utils import rotowire
+from utils import nhl_api
 from utils.team_abr import ABBREVIATIONS
 from utils import league_param
 
 BAD_PLAYER = 3 # threshold for bad average fan pointts
 
+TIME_OPTIONS = {
+    'currentSeason': 'Season',
+    'last14days': 'Last 14 days',
+    'thisWeek': 'This Week'
+}
+
 with open('data/player_names.json', 'r') as fp:
-        player_names = json.load(fp)
+    player_names = json.load(fp)
+
+with open('data/player_team.json', 'r') as fp:
+    PLAYER_TEAM = json.load(fp)	
 
 player_dd_options = [
     {'label': value, 'value': key}
@@ -40,33 +50,43 @@ layout = html.Div(
                             className='p-3 bg-white borders border-secondary rounded shadow',
                             children=[
                                 html.H3('Settings'),
-                                #html.Hr(),
-                                html.H6('Time'),
                                 html.Div(
-                                    className='mb-3',
+                                    className='row',
                                     children=[
-                                        
-                                        dcc.Dropdown(
-                                            id='timespan-dd',
-                                            clearable=False,
-                                            options=[
-                                                {'label': 'Season', 'value': 'currentSeason'},
-                                                {'label': 'Last 14 days', 'value': 'last14days'},
-                                                {'label': 'This Week', 'value': 'thisWeek'}
-                                            ],
+                                        html.Div(
+                                            className='col',
+                                            children=[
+                                                html.Hr(),
+                                                html.H6('Time'),
+                                                html.Div(
+                                                    className='mb-3',
+                                                    children=[
+                                                        
+                                                        dcc.Dropdown(
+                                                            id='timespan-dd',
+                                                            clearable=False,
+                                                            options=[
+                                                                {'label': 'Season', 'value': 'currentSeason'},
+                                                                {'label': 'Last 14 days', 'value': 'last14days'},
+                                                                {'label': 'This Week', 'value': 'thisWeek'}
+                                                            ],
+                                                        )
+                                                    ]
+                                                ),
+                                                html.H6('Players'),
+                                                html.Div(
+                                                    className='mb-3',
+                                                    children=[
+                                                        dcc.Dropdown(
+                                                            id='player-dd',
+                                                            options= player_dd_options,
+                                                            multi=True,
+                                                            persistence=True,
+                                                        ),
+                                                    ]
+                                                )
+                                            ]
                                         )
-                                    ]
-                                ),
-                                html.H6('Players'),
-                                html.Div(
-                                    className='mb-3',
-                                    children=[
-                                        dcc.Dropdown(
-                                            id='player-dd',
-                                            options= player_dd_options,
-                                            multi=True,
-                                            persistence=True,
-                                        ),
                                     ]
                                 )
                             ]
@@ -98,13 +118,42 @@ layout = html.Div(
                     className='col-xl-3 p-2',
                     children=[
                         html.Div(
-                            className='p-3 bg-white borders border-secondary rounded shadow mb-3',
+                            className='p-3 bg-white borders border-secondary rounded shadow mb-3 max-vh-50 overflow-auto',
                             children=[
-                                html.H3('Projection'),
-                                #html.Hr(),
-                                html.P(
-                                    id='projection-graph',
-                                    children=[]
+                                html.H3('Predictions'),
+                                html.Div(
+                                    className='row',
+                                    children=[
+                                        html.Div(
+                                            className='col',
+                                            children=[
+                                                #html.Hr(),
+                                                dcc.Graph(
+                                                    id='projection-chart',
+                                                    figure={
+                                                        'data': [],
+                                                        'layout': {
+                                                            'title': "Next Week's Predictions",
+                                                            'showlegend': False,
+                                                            'xaxis': {'fixedrange': True},
+                                                            'yaxis': {'fixedrange': True},
+                                                            'height': 250,
+                                                            'margin': {
+                                                                'l': 30,
+                                                                'r': 30,
+                                                                'b': 60,
+                                                                't': 30,
+                                                                'pad': 4
+                                                            },
+                                                            'bargap' : 0.01
+                                                        }
+                                                        
+                                                    },
+                                                    config= {'displayModeBar': False}
+                                                )
+                                            ]                               
+                                        )
+                                    ]
                                 )
                             ]
                         ),
@@ -112,11 +161,21 @@ layout = html.Div(
                             className='p-3 bg-white borders border-secondary rounded shadow',
                             children=[
                                 html.H3('Notifications'),
-                                #html.Hr(),
-                                html.P(
-                                    id='expected-games',
-                                    children=[]
-                                )
+                                #html.Div(
+                                    #className='row',
+                                    #children=[
+                                        #html.Div(
+                                            #className='col',
+                                            #children=[
+                                                #html.Hr,
+                                                html.P(
+                                                    id='expected-games',
+                                                    children=[]
+                                                )
+                                            #]
+                                        #)
+                                    #]
+                                #)
                             ]
                         )
                     ]
@@ -154,12 +213,14 @@ def update_search(val):  # pylint: disable=unused-argumen
     Output('player-cards', 'children'),
     Output('timespan-dd', 'value'),
     Output('player-dd', 'value'),
+    Output('projection-chart','figure'),
     Input('timespan-dd', 'value'),
     Input('player-dd', 'value'),
     State('url', 'search'),
-    State('url', 'hash')
+    State('url', 'hash'),
+    State('projection-chart','figure')
 )
-def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unused-argument
+def on_app_load(timespan, players, url_search, url_hash,fig):  # pylint: disable=unused-argument
     
     #Prevent Update if no query is made
     if not url_search and not players:
@@ -207,6 +268,7 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
     players = [
         {
         'name': player_names[player_id],
+        'id': player_id,
         'stats': {
             'df': player_stats[player_id],
             'fan_points':{
@@ -228,7 +290,7 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
         for player_id in player_query
     ]
 
-    players = sorted(players, key=lambda d: d['stats']['fan_points'][timespan_return_value], reverse=True) 
+    players = sorted(players, key=lambda d: d['stats']['fan_points'][timespan_return_value] if not math.isnan(d['stats']['fan_points'][timespan_return_value]) else 0, reverse=True) 
 
     children = [
         html.Div(
@@ -321,8 +383,66 @@ def on_app_load(timespan, players, url_search, url_hash):  # pylint: disable=unu
         )
     ]
 
+    start_date = league_param.get_next_monday()
+    end_date = start_date + datetime.timedelta(days=6)
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+    df = nhl_api.get_next_week(start_date_str, end_date_str)
 
-    return children, timespan_return_value, player_query
+    number_of_games = df['Count'].to_dict()
+
+    players = [
+        {
+            'prediction': player['stats']['fan_points'][timespan_return_value],
+            'id': player['id'],
+            'position': player['position'],
+            'lastName': player['name'].split()[-1],
+            'gameCount': number_of_games[PLAYER_TEAM[player['id']]]
+        }
+        for player in players
+    ]
+
+    players = sorted(players, key=lambda d: d['prediction'] * d['gameCount'] if not math.isnan(d['prediction']) else 0, reverse=True) 
+
+    fig['data'] = [
+        {
+            'name': 'Predictions',
+            'x':[
+                player['lastName']
+                for player in players
+            ],
+            'y':[
+                player['prediction'] * player['gameCount']
+                for player in players
+            ],
+            'text':[
+                player['gameCount']
+                for player in players
+            ],
+            'textposition': 'none',
+            'hovertemplate':'%{y:.2f} Fantasy Points' +
+                            '<br>In %{text} games' +
+                            '<br>%{x}',
+            'type': 'bar',
+            'opacity': 0.8,
+            'marker': {
+                'color': '#242475'
+            }
+        }
+    ]
+
+    fig['layout']['title'] = {
+        'text':'Based off ' + TIME_OPTIONS[timespan_return_value],
+        'font': {
+            #'family': 'Courier New, monospace',
+            #'size': 20
+        },
+        'xref': 'paper',
+        'x': 0,
+    }
+
+
+    return children, timespan_return_value, player_query, fig
 
 
 @app.callback(
